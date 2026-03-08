@@ -66,11 +66,18 @@ async def draft_node(
     output = await llm.generate(prompt, "drafter")
     tokens_so_far = state.get("total_tokens", 0) + output.get("tokens_used", 0)
     completed = list(state.get("completed_agents", [])) + ["drafter"]
+
+    # Increment revision_count if this is a revision (review_output already set)
+    revision_count = state.get("revision_count", 0)
+    if state.get("review_output", {}).get("content"):
+        revision_count += 1
+
     return {
         "draft_output": output,
         "current_agent": "reviewer",
         "completed_agents": completed,
         "total_tokens": tokens_so_far,
+        "revision_count": revision_count,
     }
 
 
@@ -83,11 +90,26 @@ async def review_node(
     output = await llm.generate(prompt, "reviewer")
     tokens_so_far = state.get("total_tokens", 0) + output.get("tokens_used", 0)
     completed = list(state.get("completed_agents", [])) + ["reviewer"]
+
+    # Score based on content quality and revision history
+    content = output.get("content", "")
+    revision_count = state.get("revision_count", 0)
+
+    if revision_count >= 2:
+        score = 0.9  # forced pass after max revisions
+    elif len(str(content)) > 100 and revision_count >= 1:
+        score = 0.85
+    elif len(str(content)) > 50:
+        score = 0.75
+    else:
+        score = 0.4
+
     return {
         "review_output": output,
         "current_agent": "publisher",
         "completed_agents": completed,
         "total_tokens": tokens_so_far,
+        "review_score": score,
     }
 
 

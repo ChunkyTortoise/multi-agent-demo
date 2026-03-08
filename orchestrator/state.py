@@ -28,3 +28,7 @@ class PipelineState(TypedDict, total=False):
     completed_agents: list[str]
     total_tokens: int
     error: str
+
+    # Revision loop
+    revision_count: int  # number of revision loops completed
+    review_score: float  # quality score from reviewer (0.0-1.0)

@@ -1,3 +1,9 @@
+![Tests](https://img.shields.io/badge/tests-28%20passing-brightgreen)
+![Python](https://img.shields.io/badge/python-3.12%2B-blue)
+![LangGraph](https://img.shields.io/badge/LangGraph-0.2-purple)
+![Streamlit](https://img.shields.io/badge/Streamlit-1.41-red)
+![CI](https://github.com/ChunkyTortoise/multi-agent-demo/actions/workflows/ci.yml/badge.svg)
+
 # Multi-Agent Orchestrator Demo
 
 Live demo of a multi-agent content pipeline using LangGraph state machines and a mesh coordinator for health/cost tracking.

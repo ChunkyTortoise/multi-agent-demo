@@ -48,6 +48,8 @@ class ContentPipeline:
             "completed_agents": [],
             "total_tokens": 0,
             "error": "",
+            "revision_count": 0,
+            "review_score": 0.0,
         }
         try:
             return await self._graph.ainvoke(initial_state)
@@ -73,11 +75,24 @@ class ContentPipeline:
             "publisher", functools.partial(publish_node, llm=self.llm)
         )
 
-        # Linear pipeline: research -> draft -> review -> publish -> END
+        # Pipeline: research -> draft -> review --(conditional)--> publish or back to draft
         workflow.set_entry_point("researcher")
         workflow.add_edge("researcher", "drafter")
         workflow.add_edge("drafter", "reviewer")
-        workflow.add_edge("reviewer", "publisher")
+
+        def route_after_review(state: PipelineState) -> str:
+            """Route to publisher if quality passes, else back to drafter for revision."""
+            score = state.get("review_score", 0.0)
+            revision_count = state.get("revision_count", 0)
+            if score >= 0.7 or revision_count >= 2:
+                return "publisher"
+            return "drafter"
+
+        workflow.add_conditional_edges(
+            "reviewer",
+            route_after_review,
+            {"publisher": "publisher", "drafter": "drafter"},
+        )
         workflow.add_edge("publisher", END)
 
         return workflow.compile()

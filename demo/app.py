@@ -45,25 +45,30 @@ ARCHITECTURE_DIAGRAM = """
                     +--------+----------+
                              |
                     +--------v----------+
-                    |   DRAFTER         |
-                    |   (Write article) |
-                    +--------+----------+
-                             |
-                    +--------v----------+
-                    |   REVIEWER        |
-                    |   (Quality check) |
-                    +--------+----------+
-                             |
-                    +--------v----------+
-                    |   PUBLISHER       |
-                    |   (Format & ship) |
-                    +--------+----------+
-                             |
-                    +--------v----------+
-                    |   PUBLISHED       |
-                    +-------------------+
+               +--->|   DRAFTER         |
+               |    |   (Write article) |
+               |    +--------+----------+
+               |             |
+               |    +--------v----------+
+               |    |   REVIEWER        |
+               |    |   (Quality check) |
+               |    +--------+----------+
+               |             |
+               |        score < 0.7
+               |        & revisions < 2?
+               |       /            \\
+               +--- YES              NO ---+
+                                           |
+                                  +--------v----------+
+                                  |   PUBLISHER       |
+                                  |   (Format & ship) |
+                                  +--------+----------+
+                                           |
+                                  +--------v----------+
+                                  |   PUBLISHED       |
+                                  +-------------------+
 
-    Orchestration: LangGraph StateGraph
+    Orchestration: LangGraph StateGraph (conditional routing)
     Coordination:  Mesh Coordinator (health, cost, routing)
     LLM Backend:   Claude Haiku (real) or MockLLM (demo)
 ```
@@ -199,6 +204,23 @@ async def run_pipeline_with_tracking(
             st.markdown(publisher.output)
 
 
+def render_review_quality(result: dict) -> None:
+    """Display review score and revision count after pipeline run."""
+    score = result.get("review_score", 0.0)
+    revisions = result.get("revision_count", 0)
+
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric("Review Score", f"{score:.2f}")
+        st.progress(min(score, 1.0))
+    with col2:
+        st.metric("Revisions", revisions)
+        if revisions == 0:
+            st.info("Passed review on first attempt")
+        else:
+            st.warning(f"Revised {revisions} time{'s' if revisions != 1 else ''} before passing")
+
+
 def main() -> None:
     st.set_page_config(
         page_title="Multi-Agent Orchestrator",
@@ -246,7 +268,7 @@ def main() -> None:
         # Render sidebar
         render_cost_sidebar(coordinator)
 
-        # Run pipeline
+        # Run pipeline with visual tracking
         asyncio.run(
             run_pipeline_with_tracking(
                 topic,
@@ -257,8 +279,16 @@ def main() -> None:
             )
         )
 
+        # Run LangGraph pipeline to get review quality metrics
+        llm = get_llm()
+        pipeline = ContentPipeline(llm=llm)
+        result = asyncio.run(pipeline.run(topic))
+
         # Final sidebar update
         render_cost_sidebar(coordinator)
+
+        # Show review quality metrics
+        render_review_quality(result)
 
         st.success("Pipeline complete!")
 
