@@ -65,3 +65,7 @@ tests/
 2. **Same patterns**: TypedDict state, StateGraph, conditional edges, ainvoke()
 3. **Dual LLM mode**: MockLLM for demos, ClaudeLLM for real output
 4. **Cost tracking**: Blended Haiku rate ($0.50/1M tokens)
+
+## License
+
+MIT — see [LICENSE](LICENSE) for details.
