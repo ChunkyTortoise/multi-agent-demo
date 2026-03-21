@@ -1,8 +1,9 @@
-![Tests](https://img.shields.io/badge/tests-28%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-33%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12%2B-blue)
 ![LangGraph](https://img.shields.io/badge/LangGraph-0.2-purple)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.41-red)
 ![CI](https://github.com/ChunkyTortoise/multi-agent-demo/actions/workflows/ci.yml/badge.svg)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Streamlit-FF4B4B?logo=streamlit)](https://multi-agent-demo-xjvogxpydrv6cfnxvqftpx.streamlit.app)
 
 # Multi-Agent Orchestrator Demo
 
