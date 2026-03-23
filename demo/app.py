@@ -8,6 +8,7 @@ import time
 import streamlit as st
 
 from demo.mock_llm import get_llm
+from demo.theme import apply_theme
 from mesh.coordinator import MeshCoordinator
 from mesh.registry import AgentStatus
 from orchestrator.graph import AGENT_SEQUENCE, ContentPipeline
@@ -227,6 +228,7 @@ def main() -> None:
         page_icon="",
         layout="wide",
     )
+    apply_theme()
 
     st.title("Live Multi-Agent Orchestrator")
     st.caption("LangGraph + Mesh Coordinator")
