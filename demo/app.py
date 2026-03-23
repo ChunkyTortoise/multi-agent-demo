@@ -83,19 +83,27 @@ def render_pipeline_status(agents: list, current: str | None) -> None:
         agent = next((a for a in agents if a.name == name), None)
         status = agent.status if agent else AgentStatus.IDLE
         label = AGENT_LABELS[name]
-        color = STATUS_COLORS[status]
         suffix = STATUS_EMOJI[status]
 
         with cols[i]:
             if status == AgentStatus.DONE:
-                st.success(f"{label}{suffix}")
+                st.markdown(
+                    f'<div class="agent-card done"><p style="text-align:center;margin:0;font-weight:600;">{label}{suffix}</p></div>',
+                    unsafe_allow_html=True,
+                )
             elif status == AgentStatus.RUNNING:
-                st.info(f"{label}{suffix}")
+                st.markdown(
+                    f'<div class="agent-card running"><p style="text-align:center;margin:0;font-weight:600;">{label}{suffix}</p></div>',
+                    unsafe_allow_html=True,
+                )
             elif status == AgentStatus.ERROR:
-                st.error(f"{label}{suffix}")
+                st.markdown(
+                    f'<div class="agent-card" style="border-color:rgba(239,68,68,0.6);background:rgba(239,68,68,0.06);"><p style="text-align:center;margin:0;color:#ef4444;">{label} [error]</p></div>',
+                    unsafe_allow_html=True,
+                )
             else:
-                st.container(border=True).markdown(
-                    f"<p style='text-align:center;color:gray'>{label}</p>",
+                st.markdown(
+                    f'<div class="agent-card"><p style="text-align:center;margin:0;color:#8B949E;">{label}</p></div>',
                     unsafe_allow_html=True,
                 )
 
@@ -202,7 +210,10 @@ async def run_pipeline_with_tracking(
         with output_placeholder.container():
             st.markdown("---")
             st.markdown("### Final Published Output")
-            st.markdown(publisher.output)
+            st.markdown(
+                f'<div class="output-box">{publisher.output}</div>',
+                unsafe_allow_html=True,
+            )
 
 
 def render_review_quality(result: dict) -> None:
@@ -253,6 +264,14 @@ def main() -> None:
     pipeline_placeholder = st.empty()
     table_placeholder = st.empty()
     output_placeholder = st.empty()
+
+    # Show skeleton while waiting for first run
+    if not run_button:
+        _skeleton = '<div class="skeleton"></div>' * len(AGENT_SEQUENCE)
+        pipeline_placeholder.markdown(
+            f'<div style="display:grid;grid-template-columns:repeat({len(AGENT_SEQUENCE)},1fr);gap:0.5rem;">{_skeleton}</div>',
+            unsafe_allow_html=True,
+        )
 
     # Architecture expander
     with st.expander("Architecture"):

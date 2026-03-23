@@ -54,6 +54,25 @@ _CSS = f"""
         line-height: 1.6;
     }}
 
+    /* Skeleton shimmer */
+    @keyframes shimmer {{
+        0% {{ background-position: -468px 0; }}
+        100% {{ background-position: 468px 0; }}
+    }}
+    .skeleton {{
+        background: linear-gradient(
+            to right,
+            rgba(255,255,255,0.04) 8%,
+            rgba(255,255,255,0.10) 18%,
+            rgba(255,255,255,0.04) 33%
+        );
+        background-size: 800px 104px;
+        animation: shimmer 1.4s ease-in-out infinite;
+        border-radius: 6px;
+        height: 2.5rem;
+        margin: 0.25rem 0;
+    }}
+
     /* Sidebar */
     [data-testid="stSidebar"] {{ background-color: #13132a; }}
 </style>
