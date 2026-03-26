@@ -1,4 +1,4 @@
-![Tests](https://img.shields.io/badge/tests-33%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-72%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12%2B-blue)
 ![LangGraph](https://img.shields.io/badge/LangGraph-0.2-purple)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.41-red)
@@ -7,7 +7,9 @@
 
 # Multi-Agent Orchestrator Demo
 
-Live demo of a multi-agent content pipeline using LangGraph state machines and a mesh coordinator for health/cost tracking.
+Live demo of a production-grade multi-agent content pipeline: **planning**, **tool use**, **RAG retrieval**, and **conditional routing** via LangGraph. Runs fully offline with MockLLM.
+
+> Maps to: IBM RAG and Agentic AI cert, Duke LLMOps cert, IBM GenAI Engineering cert
 
 ## Architecture
 
@@ -15,39 +17,70 @@ Live demo of a multi-agent content pipeline using LangGraph state machines and a
 Topic Input
     |
     v
-[Researcher] --> [Drafter] --> [Reviewer] --> [Publisher]
-    |                |              |              |
-    +--- Mesh Coordinator (health, cost, routing) -+
+[Planner] ---(complex topics only)---+
+    |                                 |
+    v                                 |
+[Researcher + Tools] <---------------+
+  - web_search(query)
+  - retrieve_docs(query)   <- vector store retrieval
+    |
+    v
+[Drafter] --> [Reviewer] ---(low quality)--> [Drafter] (max 2 loops)
+                   |
+                   v (quality passes)
+             [Publisher]
+                   |
+                   v
+            Final Article
+
++ Mesh Coordinator (health, cost, token tracking per agent)
 ```
 
-**4 sequential agents**: Researcher, Drafter, Reviewer, Publisher
-- **LangGraph StateGraph** manages the workflow (modeled after EnterpriseHub's `LeadQualificationOrchestrator`)
-- **Mesh Coordinator** handles agent registration, health tracking, cost monitoring (simplified from EnterpriseHub's `AgentMeshCoordinator`)
-- **MockLLM** generates realistic outputs without API keys
-- **ClaudeLLM** uses real Claude Haiku when `ANTHROPIC_API_KEY` is set
+**5 nodes, 2 conditional edges, tool use, planning pre-pass:**
+- **Planner** decomposes complex topics into research sub-tasks (LangGraph conditional entry)
+- **Researcher** calls `web_search` + `retrieve_docs` tools before generating response
+- **Drafter → Reviewer → Drafter** revision loop (conditional routing, max 2 passes)
+- **Mesh Coordinator** tracks agent health, tokens, latency, and cost
+- **MockToolProvider** / **MockLLM** — fully runnable without any API keys
 
 ## Quick Start
 
 ```bash
 pip install -e ".[dev]"
 
-# Run tests
+# Run tests (72 passing)
 pytest tests/ -x -q
 
-# Launch Streamlit demo
+# Launch Streamlit demo (no API key needed)
 streamlit run demo/app.py
 
-# With real Claude (optional)
+# With real Claude + tools
 ANTHROPIC_API_KEY=sk-... streamlit run demo/app.py
+
+# Enable optional ChromaDB vector store
+pip install -e ".[rag]"
 ```
+
+## Key Features
+
+| Feature | Pattern | File |
+|---------|---------|------|
+| Tool-using research agent | `web_search` + `retrieve_docs` w/ Pydantic schemas | `orchestrator/tools.py` |
+| Planning agent | Topic decomposition → numbered sub-tasks | `orchestrator/planner.py` |
+| Conditional entry routing | `START -> planner OR researcher` | `orchestrator/graph.py` |
+| Revision loop | Reviewer routes back to drafter if score < 0.7 | `orchestrator/graph.py` |
+| Grounded research | Tool results injected into researcher prompt | `orchestrator/nodes.py` |
+| Agent health/cost mesh | Per-agent metrics with heartbeat health checks | `mesh/coordinator.py` |
 
 ## Project Structure
 
 ```
 orchestrator/
-    graph.py       # LangGraph state machine
-    nodes.py       # Agent node functions
-    state.py       # TypedDict state definition
+    graph.py       # LangGraph state machine (planner + tools + revision loop)
+    nodes.py       # Agent node functions (research_node with tool support)
+    planner.py     # Planner node + should_plan() heuristic
+    state.py       # TypedDict state (PipelineState, ToolCall, AgentOutput)
+    tools.py       # Tool definitions + MockToolProvider
 mesh/
     coordinator.py # Mesh coordinator (health, cost, routing)
     registry.py    # Agent registry and metrics
@@ -57,14 +90,16 @@ demo/
 tests/
     test_graph.py         # Pipeline state machine tests
     test_coordinator.py   # Coordinator and registry tests
+    test_tools.py         # Tool execution + research_node integration (28 tests)
+    test_planner.py       # Planner node + conditional routing (12 tests)
 ```
 
 ## Key Design Decisions
 
-1. **Decoupled from EnterpriseHub**: No GHL, MCP, Redis, or PostgreSQL dependencies
-2. **Same patterns**: TypedDict state, StateGraph, conditional edges, ainvoke()
-3. **Dual LLM mode**: MockLLM for demos, ClaudeLLM for real output
-4. **Cost tracking**: Blended Haiku rate ($0.50/1M tokens)
+1. **Tool use is backward-compatible**: `research_node` works with or without `tool_provider`
+2. **Planning is opt-in**: `ContentPipeline(use_planner=True)` — off by default, no breaking changes
+3. **Deterministic mocks**: `MockToolProvider` and `MockLLM` produce consistent outputs for CI
+4. **Same LangGraph patterns as EnterpriseHub**: TypedDict state, conditional edges, `ainvoke()`
 
 ## License
 

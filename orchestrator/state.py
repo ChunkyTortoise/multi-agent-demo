@@ -1,6 +1,6 @@
 """TypedDict state definition for the content pipeline."""
 
-from typing import TypedDict
+from typing import Any, TypedDict
 
 
 class AgentOutput(TypedDict, total=False):
@@ -8,6 +8,15 @@ class AgentOutput(TypedDict, total=False):
 
     content: str
     tokens_used: int
+    error: str
+
+
+class ToolCall(TypedDict, total=False):
+    """Record of a single tool invocation during agent execution."""
+
+    tool_name: str
+    input: dict[str, Any]
+    output: str
     error: str
 
 
@@ -32,3 +41,11 @@ class PipelineState(TypedDict, total=False):
     # Revision loop
     revision_count: int  # number of revision loops completed
     review_score: float  # quality score from reviewer (0.0-1.0)
+
+    # Tool use (populated by research_node when tool_provider is supplied)
+    tool_calls: list[ToolCall]  # all tool invocations recorded in order
+    retrieved_context: list[dict[str, Any]]  # documents from retrieve_docs tool
+
+    # Planning (populated by planner_node when use_planner=True)
+    plan: list[str]  # ordered list of research sub-tasks from the planner
+    use_planner: bool  # whether to run planner_node before researcher

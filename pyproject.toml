@@ -21,6 +21,10 @@ dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
 ]
+rag = [
+    "chromadb>=0.5",
+    "sentence-transformers>=3.0",
+]
 
 [tool.setuptools.packages.find]
 include = ["orchestrator*", "mesh*", "demo*"]

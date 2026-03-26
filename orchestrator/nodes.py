@@ -2,11 +2,11 @@
 
 from __future__ import annotations
 
+import json
 import logging
-import os
-from typing import Any, Callable, Protocol
+from typing import Any, Protocol
 
-from orchestrator.state import AgentOutput, PipelineState
+from orchestrator.state import AgentOutput, PipelineState, ToolCall
 
 logger = logging.getLogger(__name__)
 
@@ -41,11 +41,92 @@ def _build_prompt(agent: str, topic: str, prior: str) -> str:
     return prompts[agent]
 
 
+def _tools_for_topic(topic: str) -> list[tuple[str, dict[str, Any]]]:
+    """Return (tool_name, inputs) pairs to execute for a given topic."""
+    return [
+        ("web_search", {"query": topic, "max_results": 3}),
+        ("retrieve_docs", {"query": topic, "top_k": 3}),
+    ]
+
+
+def _format_tool_context(tool_calls: list[ToolCall]) -> str:
+    """Format tool results into a readable context block for the LLM prompt."""
+    sections: list[str] = []
+    for tc in tool_calls:
+        if tc.get("error"):
+            continue
+        name = tc["tool_name"]
+        raw = tc.get("output", "")
+        try:
+            parsed = json.loads(raw)
+            if name == "web_search" and isinstance(parsed, list):
+                items = "\n".join(
+                    f"  - [{r.get('title', '')}] {r.get('snippet', '')}"
+                    for r in parsed
+                )
+                sections.append(f"Web Search Results:\n{items}")
+            elif name == "retrieve_docs" and isinstance(parsed, list):
+                items = "\n".join(
+                    f"  - (score {r.get('score', 0):.2f}) {r.get('content', '')}"
+                    for r in parsed
+                )
+                sections.append(f"Retrieved Documents:\n{items}")
+            else:
+                sections.append(f"{name}: {raw}")
+        except (json.JSONDecodeError, TypeError):
+            sections.append(f"{name}: {raw}")
+    return "\n\n".join(sections)
+
+
 async def research_node(
-    state: PipelineState, *, llm: LLMProvider
+    state: PipelineState,
+    *,
+    llm: LLMProvider,
+    tool_provider: Any = None,
 ) -> dict[str, Any]:
-    """Researcher agent: gathers information on the topic."""
-    prompt = _build_prompt("researcher", state["topic"], "")
+    """Researcher agent: gathers information on the topic.
+
+    When tool_provider is supplied, executes web_search and retrieve_docs
+    before prompting the LLM so the response is grounded in retrieved context.
+    Falls back to prompt-only behaviour when tool_provider is None.
+    """
+    topic = state["topic"]
+    prior_tool_calls: list[ToolCall] = list(state.get("tool_calls", []))
+    retrieved_docs: list[dict[str, Any]] = []
+    new_tool_calls: list[ToolCall] = []
+
+    if tool_provider is not None:
+        for tool_name, inputs in _tools_for_topic(topic):
+            result: ToolCall = await tool_provider.execute(tool_name, inputs)
+            new_tool_calls.append(result)
+            if tool_name == "retrieve_docs" and not result.get("error"):
+                try:
+                    retrieved_docs = json.loads(result["output"])
+                except (json.JSONDecodeError, TypeError):
+                    pass
+
+        tool_context = _format_tool_context(new_tool_calls)
+        plan = state.get("plan", [])
+        plan_section = (
+            "\n\nResearch Plan:\n" + "\n".join(f"{i + 1}. {t}" for i, t in enumerate(plan))
+            if plan
+            else ""
+        )
+        prompt = (
+            f"Research the following topic thoroughly. Provide key facts, statistics, "
+            f"and expert insights. Use the tool results below as your primary sources.\n\n"
+            f"Topic: {topic}{plan_section}\n\n"
+            f"Tool Results:\n{tool_context}"
+        )
+    else:
+        plan = state.get("plan", [])
+        plan_section = (
+            "\n\nResearch Plan:\n" + "\n".join(f"{i + 1}. {t}" for i, t in enumerate(plan))
+            if plan
+            else ""
+        )
+        prompt = _build_prompt("researcher", topic, "") + plan_section
+
     output = await llm.generate(prompt, "researcher")
     tokens_so_far = state.get("total_tokens", 0) + output.get("tokens_used", 0)
     completed = list(state.get("completed_agents", [])) + ["researcher"]
@@ -54,6 +135,8 @@ async def research_node(
         "current_agent": "drafter",
         "completed_agents": completed,
         "total_tokens": tokens_so_far,
+        "tool_calls": prior_tool_calls + new_tool_calls,
+        "retrieved_context": retrieved_docs,
     }
 
 

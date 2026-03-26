@@ -15,6 +15,14 @@ from orchestrator.state import AgentOutput
 
 # Realistic mock outputs by agent role
 _MOCK_OUTPUTS: dict[str, list[str]] = {
+    "planner": [
+        (
+            "1. Research current market size and growth trends\n"
+            "2. Analyze key technical developments and emerging frameworks\n"
+            "3. Identify major industry players and competitive dynamics\n"
+            "4. Examine real-world implementation challenges and ROI metrics"
+        ),
+    ],
     "researcher": [
         (
             "## Research Findings\n\n"
