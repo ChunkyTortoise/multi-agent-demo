@@ -42,6 +42,14 @@ _CSS = f"""
         border-color: rgba(16, 185, 129, 0.5);
         background: rgba(16, 185, 129, 0.06);
     }}
+    .agent-card.planner {{
+        border-color: rgba(251, 191, 36, 0.5);
+        background: rgba(251, 191, 36, 0.06);
+    }}
+    .agent-card.parallel {{
+        border-color: rgba(168, 85, 247, 0.5);
+        background: rgba(168, 85, 247, 0.06);
+    }}
 
     /* Output box */
     .output-box {{

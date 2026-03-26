@@ -20,9 +20,12 @@ Topic Input
 [Planner] ---(complex topics only)---+
     |                                 |
     v                                 |
-[Researcher + Tools] <---------------+
-  - web_search(query)
-  - retrieve_docs(query)   <- vector store retrieval
+[use_parallel & N>1 sub-tasks?]      |
+  YES → [Sub-Research x N]           |
+         → [Aggregator]              |
+  NO  → [Researcher + Tools] <-------+
+           - web_search(query)
+           - retrieve_docs(query)   <- vector store retrieval
     |
     v
 [Drafter] --> [Reviewer] ---(low quality)--> [Drafter] (max 2 loops)
@@ -33,7 +36,7 @@ Topic Input
                    v
             Final Article
 
-+ Mesh Coordinator (health, cost, token tracking per agent)
+Orchestration: LangGraph StateGraph — conditional routing + Send() fan-out
 ```
 
 **5 nodes, 2 conditional edges, tool use, planning pre-pass:**
@@ -48,7 +51,7 @@ Topic Input
 ```bash
 pip install -e ".[dev]"
 
-# Run tests (72 passing)
+# Run tests (89 passing)
 pytest tests/ -x -q
 
 # Launch Streamlit demo (no API key needed)
@@ -89,10 +92,10 @@ demo/
     app.py         # Streamlit UI
     mock_llm.py    # Mock + real LLM providers
 tests/
-    test_graph.py         # Pipeline state machine tests
-    test_coordinator.py   # Coordinator and registry tests
-    test_tools.py         # Tool execution + research_node integration (28 tests)
-    test_planner.py       # Planner node + conditional routing (12 tests)
+    test_graph.py         # Pipeline state machine tests (13 tests)
+    test_coordinator.py   # Coordinator and registry tests (20 tests)
+    test_tools.py         # Tool execution + research_node integration (22 tests)
+    test_planner.py       # Planner node + conditional routing (17 tests)
     test_parallel.py      # Parallel fan-out/fan-in via Send() (7 tests)
     test_vectorstore.py   # MockVectorStore + ChromaVectorStore integration (10 tests)
 ```

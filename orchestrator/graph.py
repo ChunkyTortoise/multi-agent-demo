@@ -58,6 +58,35 @@ class ContentPipeline:
         self.use_parallel = use_parallel
         self._graph = self._build_graph()
 
+    async def astream(self, topic: str):
+        """Yield (node_name, state_delta) as each node completes.
+
+        Wraps LangGraph's native astream so callers don't need to construct
+        initial state or import PipelineState.
+        """
+        initial_state: PipelineState = {
+            "topic": topic,
+            "research_output": {},
+            "draft_output": {},
+            "review_output": {},
+            "publish_output": {},
+            "current_agent": "researcher",
+            "completed_agents": [],
+            "total_tokens": 0,
+            "error": "",
+            "revision_count": 0,
+            "review_score": 0.0,
+            "tool_calls": [],
+            "retrieved_context": [],
+            "plan": [],
+            "use_planner": self.use_planner,
+            "parallel_results": [],
+            "use_parallel": self.use_parallel,
+        }
+        async for event in self._graph.astream(initial_state, stream_mode="updates"):
+            for node_name, delta in event.items():
+                yield node_name, delta
+
     async def run(self, topic: str) -> PipelineState:
         """Run the full pipeline for a given topic."""
         initial_state: PipelineState = {
