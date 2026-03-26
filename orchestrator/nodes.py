@@ -140,6 +140,65 @@ async def research_node(
     }
 
 
+async def sub_researcher_node(
+    state: PipelineState,
+    *,
+    llm: LLMProvider,
+    tool_provider: Any = None,
+) -> dict[str, Any]:
+    """Research a single sub-task. Dispatched in parallel via LangGraph Send().
+
+    Returns to ``parallel_results`` (Annotated reducer) so results from all
+    concurrent invocations are automatically accumulated before the aggregator runs.
+    """
+    topic = state.get("topic", "")
+    new_tool_calls: list[ToolCall] = []
+
+    if tool_provider is not None:
+        for tool_name, inputs in _tools_for_topic(topic):
+            result: ToolCall = await tool_provider.execute(tool_name, inputs)
+            new_tool_calls.append(result)
+        tool_context = _format_tool_context(new_tool_calls)
+        prompt = (
+            f"Research this specific angle thoroughly. Use the tool results below "
+            f"as primary sources.\n\nAngle: {topic}\n\nTool Results:\n{tool_context}"
+        )
+    else:
+        prompt = f"Research this specific angle thoroughly:\n\n{topic}"
+
+    output = await llm.generate(prompt, "researcher")
+    return {
+        "parallel_results": [
+            {
+                "task": topic,
+                "content": output.get("content", ""),
+                "tokens_used": output.get("tokens_used", 0),
+            }
+        ],
+    }
+
+
+async def aggregator_node(state: PipelineState) -> dict[str, Any]:
+    """Merge all parallel research results into a single research_output.
+
+    Runs once after the fan-in: all sub_researcher invocations have completed
+    and their results accumulated in ``state["parallel_results"]`` via operator.add.
+    """
+    results: list[dict[str, Any]] = state.get("parallel_results", [])
+    combined = "\n\n---\n\n".join(
+        f"**Research Angle: {r['task']}**\n\n{r['content']}" for r in results
+    )
+    new_tokens = sum(r.get("tokens_used", 0) for r in results)
+    tokens_so_far = state.get("total_tokens", 0) + new_tokens
+    completed = list(state.get("completed_agents", [])) + ["researcher"]
+    return {
+        "research_output": {"content": combined, "tokens_used": new_tokens},
+        "current_agent": "drafter",
+        "completed_agents": completed,
+        "total_tokens": tokens_so_far,
+    }
+
+
 async def draft_node(
     state: PipelineState, *, llm: LLMProvider
 ) -> dict[str, Any]:

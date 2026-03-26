@@ -1,4 +1,4 @@
-![Tests](https://img.shields.io/badge/tests-72%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-89%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12%2B-blue)
 ![LangGraph](https://img.shields.io/badge/LangGraph-0.2-purple)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.41-red)
@@ -76,11 +76,12 @@ pip install -e ".[rag]"
 
 ```
 orchestrator/
-    graph.py       # LangGraph state machine (planner + tools + revision loop)
-    nodes.py       # Agent node functions (research_node with tool support)
-    planner.py     # Planner node + should_plan() heuristic
-    state.py       # TypedDict state (PipelineState, ToolCall, AgentOutput)
-    tools.py       # Tool definitions + MockToolProvider
+    graph.py        # LangGraph state machine (planner + tools + parallel + revision)
+    nodes.py        # Agent node functions (research, sub_researcher, aggregator, …)
+    planner.py      # Planner node + should_plan() heuristic
+    state.py        # TypedDict state (PipelineState, ToolCall, AgentOutput)
+    tools.py        # Tool definitions + MockToolProvider (wired to vector store)
+    vectorstore.py  # MockVectorStore (TF-IDF, no deps) + ChromaVectorStore (optional)
 mesh/
     coordinator.py # Mesh coordinator (health, cost, routing)
     registry.py    # Agent registry and metrics
@@ -92,6 +93,8 @@ tests/
     test_coordinator.py   # Coordinator and registry tests
     test_tools.py         # Tool execution + research_node integration (28 tests)
     test_planner.py       # Planner node + conditional routing (12 tests)
+    test_parallel.py      # Parallel fan-out/fan-in via Send() (7 tests)
+    test_vectorstore.py   # MockVectorStore + ChromaVectorStore integration (10 tests)
 ```
 
 ## Key Design Decisions

@@ -1,6 +1,7 @@
 """TypedDict state definition for the content pipeline."""
 
-from typing import Any, TypedDict
+import operator
+from typing import Annotated, Any, TypedDict
 
 
 class AgentOutput(TypedDict, total=False):
@@ -49,3 +50,8 @@ class PipelineState(TypedDict, total=False):
     # Planning (populated by planner_node when use_planner=True)
     plan: list[str]  # ordered list of research sub-tasks from the planner
     use_planner: bool  # whether to run planner_node before researcher
+
+    # Parallel execution (populated when use_parallel=True)
+    # Annotated reducer: each sub_researcher appends its result via operator.add
+    parallel_results: Annotated[list[dict[str, Any]], operator.add]
+    use_parallel: bool  # whether to fan-out sub-tasks to parallel researchers

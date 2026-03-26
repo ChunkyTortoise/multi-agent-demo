@@ -116,7 +116,20 @@ class ToolProvider(Protocol):
 
 
 class MockToolProvider:
-    """Deterministic tool provider for testing and demos (no external APIs needed)."""
+    """Deterministic tool provider for testing and demos (no external APIs needed).
+
+    Args:
+        vector_store: Optional VectorStore used for ``retrieve_docs``.  When
+            omitted, falls back to a simple positional mock.  Pass a
+            ``MockVectorStore`` (default) or ``ChromaVectorStore`` for real
+            semantic retrieval.
+    """
+
+    def __init__(self, vector_store: Any = None) -> None:
+        if vector_store is None:
+            from orchestrator.vectorstore import MockVectorStore
+            vector_store = MockVectorStore()
+        self._vector_store = vector_store
 
     async def execute(self, tool_name: str, inputs: dict[str, Any]) -> ToolCall:
         if tool_name == "web_search":
@@ -127,14 +140,7 @@ class MockToolProvider:
         if tool_name == "retrieve_docs":
             query = inputs.get("query", "")
             top_k = inputs.get("top_k", 3)
-            docs = [
-                {
-                    "doc_id": f"doc_{i}",
-                    "content": f"Knowledge base passage about {query!r} (rank {i + 1})",
-                    "score": round(0.95 - i * 0.08, 2),
-                }
-                for i in range(top_k)
-            ]
+            docs = self._vector_store.query(query, top_k=top_k)
             return ToolCall(
                 tool_name=tool_name, input=inputs, output=json.dumps(docs), error=""
             )
