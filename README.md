@@ -9,7 +9,7 @@
 
 Live demo of a production-grade multi-agent content pipeline: **planning**, **tool use**, **RAG retrieval**, and **conditional routing** via LangGraph. Runs fully offline with MockLLM.
 
-> Maps to: IBM RAG and Agentic AI cert, Duke LLMOps cert, IBM GenAI Engineering cert
+> Built using patterns from IBM RAG & Agentic AI (LangGraph state machines, tool-augmented agents) and Duke LLMOps (CI/CD pipeline, deployment patterns). See `orchestrator/` for parallel fan-out implementation and `mesh/` for MeshCoordinator cost tracking.
 
 ## Architecture
 
