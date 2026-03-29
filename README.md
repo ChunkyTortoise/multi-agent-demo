@@ -1,3 +1,5 @@
+![Multi-Agent Demo](docs/screenshots/banner.png)
+
 ![Tests](https://img.shields.io/badge/tests-89%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12%2B-blue)
 ![LangGraph](https://img.shields.io/badge/LangGraph-0.2-purple)
