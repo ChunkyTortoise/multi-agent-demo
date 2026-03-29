@@ -60,6 +60,9 @@ streamlit run demo/app.py
 # With real Claude + tools
 ANTHROPIC_API_KEY=sk-... streamlit run demo/app.py
 
+# With GLM-4 Plus (Zhipu AI, OpenAI-compatible) — see demo/mock_llm.py for swap instructions
+ZHIPUAI_API_KEY=... streamlit run demo/app.py
+
 # Enable optional ChromaDB vector store
 pip install -e ".[rag]"
 ```
@@ -99,6 +102,17 @@ tests/
     test_parallel.py      # Parallel fan-out/fan-in via Send() (7 tests)
     test_vectorstore.py   # MockVectorStore + ChromaVectorStore integration (10 tests)
 ```
+
+## Supported LLM Providers
+
+| Provider | Model | Env Var | Notes |
+|----------|-------|---------|-------|
+| Anthropic (default) | `claude-haiku-4-5-20251001` | `ANTHROPIC_API_KEY` | Used when key is set; falls back to MockLLM |
+| Zhipu AI | `glm-4-plus` | `ZHIPUAI_API_KEY` | OpenAI-compatible API (`https://open.bigmodel.cn/api/paas/v4/`) |
+| Zhipu AI (fast) | `glm-4-flash` | `ZHIPUAI_API_KEY` | Cheaper/faster GLM variant |
+| OpenAI | `gpt-4.1` | `OPENAI_API_KEY` | Drop-in via `openai.AsyncOpenAI` |
+
+See `demo/mock_llm.py` for provider swap instructions.
 
 ## Key Design Decisions
 

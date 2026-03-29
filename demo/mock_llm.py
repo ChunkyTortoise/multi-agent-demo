@@ -160,6 +160,16 @@ class ClaudeLLM:
         return AgentOutput(content=content, tokens_used=tokens_used)
 
 
+# Multi-model support
+# Claude (default): model="claude-haiku-4-5-20251001"  (requires ANTHROPIC_API_KEY)
+# GPT-4.1: model="gpt-4.1"  (requires OPENAI_API_KEY — use openai.AsyncOpenAI)
+# GLM-4 Plus (Zhipu AI): model="glm-4-plus"  (requires ZHIPUAI_API_KEY)
+#   OpenAI-compatible API: https://open.bigmodel.cn/api/paas/v4/
+#   Usage: openai.AsyncOpenAI(api_key=os.environ["ZHIPUAI_API_KEY"],
+#                             base_url="https://open.bigmodel.cn/api/paas/v4/")
+# GLM-4 Flash (fast/cheap variant): model="glm-4-flash"  (requires ZHIPUAI_API_KEY)
+
+
 def get_llm() -> MockLLM | ClaudeLLM:
     """Return ClaudeLLM if API key is available, otherwise MockLLM."""
     api_key = os.environ.get("ANTHROPIC_API_KEY")
