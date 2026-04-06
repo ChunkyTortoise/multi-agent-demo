@@ -5,7 +5,7 @@ from __future__ import annotations
 import pytest
 
 from orchestrator.graph import AGENT_SEQUENCE, ContentPipeline
-from orchestrator.state import AgentOutput, PipelineState
+from orchestrator.state import AgentOutput
 
 
 class FakeLLM:
@@ -30,7 +30,7 @@ async def test_pipeline_runs_all_agents():
     """All four agents execute in sequence."""
     llm = FakeLLM()
     pipeline = ContentPipeline(llm=llm)
-    result = await pipeline.run("test topic")
+    await pipeline.run("test topic")
 
     agent_names = [call[0] for call in llm.calls]
     assert agent_names == AGENT_SEQUENCE
@@ -51,7 +51,7 @@ async def test_pipeline_passes_output_downstream():
     """Each agent receives the prior agent's output in its prompt."""
     llm = FakeLLM()
     pipeline = ContentPipeline(llm=llm)
-    result = await pipeline.run("test topic")
+    await pipeline.run("test topic")
 
     # Drafter should receive researcher's output
     drafter_prompt = llm.calls[1][1]

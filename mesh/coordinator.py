@@ -16,11 +16,10 @@ Removed EnterpriseHub-specific dependencies:
 from __future__ import annotations
 
 import logging
-import time
 from dataclasses import dataclass
 from typing import Any, Optional
 
-from mesh.registry import AgentRecord, AgentRegistry, AgentStatus
+from mesh.registry import AgentRegistry, AgentStatus
 
 logger = logging.getLogger(__name__)
 

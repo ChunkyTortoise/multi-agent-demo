@@ -146,8 +146,6 @@ class ClaudeLLM:
 
     async def generate(self, prompt: str, agent_name: str) -> AgentOutput:
         """Generate real output using Claude claude-haiku-4-5-20251001."""
-        import anthropic
-
         response = await self.client.messages.create(
             model="claude-haiku-4-5-20251001",
             max_tokens=1024,

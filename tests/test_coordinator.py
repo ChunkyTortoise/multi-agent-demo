@@ -2,10 +2,9 @@
 
 from __future__ import annotations
 
-import pytest
 
 from mesh.coordinator import MeshCoordinator
-from mesh.registry import AgentRecord, AgentRegistry, AgentStatus
+from mesh.registry import AgentRegistry, AgentStatus
 
 
 class TestAgentRegistry:
