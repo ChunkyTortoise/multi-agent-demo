@@ -11,6 +11,20 @@
 
 Live demo of a production-grade multi-agent content pipeline: **planning**, **tool use**, **RAG retrieval**, and **conditional routing** via LangGraph. Runs fully offline with MockLLM.
 
+## For Hiring Managers
+
+| If you're hiring for... | This repo demonstrates |
+|---|---|
+| **AI/LLM Engineer** | LangGraph state machines, multi-agent orchestration, conditional routing, tool use, RAG retrieval, planning agents |
+| **Python Engineer** | 89 tests, async patterns, MockLLM for offline testing, multi-provider LLM support (Claude, OpenAI, Zhipu AI) |
+| **MLOps Engineer** | MeshCoordinator cost tracking, CI/CD pipeline, per-agent model routing, parallel fan-out execution |
+
+**Key metrics:** 89 tests, 7-node pipeline, live Streamlit demo, runs without API keys (MockLLM), multi-provider support
+
+**Certifications applied:** IBM RAG and Agentic AI (24h, LangGraph state machines), Duke LLMOps (48h, CI/CD pipeline patterns)
+
+---
+
 > Built using patterns from IBM RAG & Agentic AI (LangGraph state machines, tool-augmented agents) and Duke LLMOps (CI/CD pipeline, deployment patterns). See `orchestrator/` for parallel fan-out implementation and `mesh/` for MeshCoordinator cost tracking.
 
 ## Architecture
