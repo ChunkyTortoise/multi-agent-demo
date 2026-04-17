@@ -11,6 +11,12 @@
 
 Live demo of a production-grade multi-agent content pipeline: **planning**, **tool use**, **RAG retrieval**, and **conditional routing** via LangGraph. Runs fully offline with MockLLM.
 
+> **Proof in 30 seconds** -- planning | routing | tool use | live demo without API keys
+>
+> **Best fit** -- AI Engineer, LLM Engineer, Applied AI Engineer
+>
+> **Why it matters** -- Easiest repo in the flagship set for a hiring manager to evaluate quickly and understand orchestration patterns.
+
 ## For Hiring Managers
 
 | If you're hiring for... | This repo demonstrates |
@@ -29,31 +35,22 @@ Live demo of a production-grade multi-agent content pipeline: **planning**, **to
 
 ## Architecture
 
+```mermaid
+graph LR
+    A[Topic Input] --> B[Planner]
+    B --> C{Parallel?}
+    C -->|Yes, N>1 sub-tasks| D[Sub-Researcher x N]
+    C -->|No| E[Researcher + Tools]
+    D --> F[Aggregator]
+    F --> G[Drafter]
+    E --> G
+    G --> H[Reviewer]
+    H -->|Low quality, max 2 loops| G
+    H -->|Quality passes| I[Publisher]
+    I --> J[Final Article]
 ```
-Topic Input
-    |
-    v
-[Planner] ---(complex topics only)---+
-    |                                 |
-    v                                 |
-[use_parallel & N>1 sub-tasks?]      |
-  YES → [Sub-Research x N]           |
-         → [Aggregator]              |
-  NO  → [Researcher + Tools] <-------+
-           - web_search(query)
-           - retrieve_docs(query)   <- vector store retrieval
-    |
-    v
-[Drafter] --> [Reviewer] ---(low quality)--> [Drafter] (max 2 loops)
-                   |
-                   v (quality passes)
-             [Publisher]
-                   |
-                   v
-            Final Article
 
-Orchestration: LangGraph StateGraph — conditional routing + Send() fan-out
-```
+> Orchestration: LangGraph StateGraph -- conditional routing + Send() fan-out
 
 **5 nodes, 2 conditional edges, tool use, planning pre-pass:**
 - **Planner** decomposes complex topics into research sub-tasks (LangGraph conditional entry)
