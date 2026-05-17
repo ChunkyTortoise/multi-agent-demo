@@ -13,7 +13,7 @@ Live demo of a production-grade multi-agent content pipeline: **planning**, **to
 
 > **Proof in 30 seconds** -- planning | routing | tool use | live demo without API keys
 >
-> **Best fit** -- AI Engineer, LLM Engineer, Applied AI Engineer
+> **Best fit** -- AI Engineer, LLM Engineer
 >
 > **Why it matters** -- Easiest repo in the flagship set for a hiring manager to evaluate quickly and understand orchestration patterns.
 
@@ -57,7 +57,7 @@ graph LR
 - **Researcher** calls `web_search` + `retrieve_docs` tools before generating response
 - **Drafter → Reviewer → Drafter** revision loop (conditional routing, max 2 passes)
 - **Mesh Coordinator** tracks agent health, tokens, latency, and cost
-- **MockToolProvider** / **MockLLM** — fully runnable without any API keys
+- **MockToolProvider** / **MockLLM** - fully runnable without any API keys
 
 ## Quick Start
 
@@ -73,7 +73,7 @@ streamlit run demo/app.py
 # With real Claude + tools
 ANTHROPIC_API_KEY=sk-... streamlit run demo/app.py
 
-# With GLM-4 Plus (Zhipu AI, OpenAI-compatible) — see demo/mock_llm.py for swap instructions
+# With GLM-4 Plus (Zhipu AI, OpenAI-compatible) - see demo/mock_llm.py for swap instructions
 ZHIPUAI_API_KEY=... streamlit run demo/app.py
 
 # Enable optional ChromaDB vector store
@@ -130,10 +130,10 @@ See `demo/mock_llm.py` for provider swap instructions.
 ## Key Design Decisions
 
 1. **Tool use is backward-compatible**: `research_node` works with or without `tool_provider`
-2. **Planning is opt-in**: `ContentPipeline(use_planner=True)` — off by default, no breaking changes
+2. **Planning is opt-in**: `ContentPipeline(use_planner=True)` - off by default, no breaking changes
 3. **Deterministic mocks**: `MockToolProvider` and `MockLLM` produce consistent outputs for CI
 4. **Same LangGraph patterns as EnterpriseHub**: TypedDict state, conditional edges, `ainvoke()`
 
 ## License
 
-MIT — see [LICENSE](LICENSE) for details.
+MIT - see [LICENSE](LICENSE) for details.
