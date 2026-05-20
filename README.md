@@ -23,7 +23,7 @@ Live demo of a production-grade multi-agent content pipeline: **planning**, **to
 |---|---|
 | **AI/LLM Engineer** | LangGraph state machines, multi-agent orchestration, conditional routing, tool use, RAG retrieval, planning agents |
 | **Python Engineer** | 89 tests, async patterns, MockLLM for offline testing, multi-provider LLM support (Claude, OpenAI, Zhipu AI) |
-| **MLOps Engineer** | MeshCoordinator cost tracking, CI/CD pipeline, per-agent model routing, parallel fan-out execution |
+| **MLOps Engineer** | CI/CD pipeline with 70% coverage gate, per-agent model routing, parallel fan-out execution |
 
 **Key metrics:** 89 tests, 7-node pipeline, live Streamlit demo, runs without API keys (MockLLM), multi-provider support
 
@@ -31,7 +31,7 @@ Live demo of a production-grade multi-agent content pipeline: **planning**, **to
 
 ---
 
-> Built using patterns from IBM RAG & Agentic AI (LangGraph state machines, tool-augmented agents) and Duke LLMOps (CI/CD pipeline, deployment patterns). See `orchestrator/` for parallel fan-out implementation and `mesh/` for MeshCoordinator cost tracking.
+> Built using patterns from IBM RAG & Agentic AI (LangGraph state machines, tool-augmented agents) and Duke LLMOps (CI/CD pipeline, deployment patterns). See `orchestrator/` for parallel fan-out implementation. The `mesh/` package contains a scaffold `MeshCoordinator` distilled from EnterpriseHub; it is not yet wired into the graph (see [#wire-mesh-coordinator](#wire-mesh-coordinator)).
 
 ## Architecture
 
@@ -89,7 +89,7 @@ pip install -e ".[rag]"
 | Conditional entry routing | `START -> planner OR researcher` | `orchestrator/graph.py` |
 | Revision loop | Reviewer routes back to drafter if score < 0.7 | `orchestrator/graph.py` |
 | Grounded research | Tool results injected into researcher prompt | `orchestrator/nodes.py` |
-| Agent health/cost mesh | Per-agent metrics with heartbeat health checks | `mesh/coordinator.py` |
+| Agent registry scaffold (not wired) | Per-agent metric structs with heartbeat fields | `mesh/coordinator.py` |
 
 ## Project Structure
 
@@ -102,7 +102,7 @@ orchestrator/
     tools.py        # Tool definitions + MockToolProvider (wired to vector store)
     vectorstore.py  # MockVectorStore (TF-IDF, no deps) + ChromaVectorStore (optional)
 mesh/
-    coordinator.py # Mesh coordinator (health, cost, routing)
+    coordinator.py # Scaffold coordinator (health, cost, routing) - NOT wired into graph
     registry.py    # Agent registry and metrics
 demo/
     app.py         # Streamlit UI
@@ -133,6 +133,13 @@ See `demo/mock_llm.py` for provider swap instructions.
 2. **Planning is opt-in**: `ContentPipeline(use_planner=True)` - off by default, no breaking changes
 3. **Deterministic mocks**: `MockToolProvider` and `MockLLM` produce consistent outputs for CI
 4. **Same LangGraph patterns as EnterpriseHub**: TypedDict state, conditional edges, `ainvoke()`
+
+## Known scope gaps
+
+<a id="wire-mesh-coordinator"></a>
+- **MeshCoordinator is scaffold only.** `mesh/coordinator.py` and `mesh/registry.py` are distilled from EnterpriseHub's AgentMeshCoordinator and have their own 20-test suite, but `start_agent()` / `complete_agent()` are not called from `orchestrator/graph.py`. Cost figures shown in the Streamlit UI come from the LLM provider response, not from MeshCoordinator. TODO: either wire it into each node in `ContentPipeline` or remove it. Tracked alongside the trace-export work in `~/Projects/_hero_repo_specs/multi-agent-demo.md`.
+- **Review score is a length heuristic.** `orchestrator/nodes.py` review_node returns 0.85 when draft length > 100 and revision_count >= 1, rather than scoring with a calibrated judge. The routing decision in `graph.py` (score >= 0.7) therefore does not use the Claude reviewer output. Replacing this with a calibrated judge is tracked in the hero spec.
+- **No external trace export.** Observability is `logging.info` only. No LangSmith / Langfuse / Phoenix / OpenTelemetry export yet.
 
 ## License
 
