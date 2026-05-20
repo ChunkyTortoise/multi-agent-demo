@@ -1,6 +1,6 @@
 ![Multi-Agent Demo](docs/screenshots/banner.png)
 
-![Tests](https://img.shields.io/badge/tests-89%20passing-brightgreen)
+![Tests](https://img.shields.io/badge/tests-94%20passing-brightgreen)
 ![Python](https://img.shields.io/badge/python-3.12%2B-blue)
 ![LangGraph](https://img.shields.io/badge/LangGraph-0.2-purple)
 ![Streamlit](https://img.shields.io/badge/Streamlit-1.41-red)
@@ -25,7 +25,20 @@ Live demo of a production-grade multi-agent content pipeline: **planning**, **to
 | **Python Engineer** | 89 tests, async patterns, MockLLM for offline testing, multi-provider LLM support (Claude, OpenAI, Zhipu AI) |
 | **MLOps Engineer** | CI/CD pipeline with 70% coverage gate, per-agent model routing, parallel fan-out execution |
 
-**Key metrics:** 89 tests, 7-node pipeline, live Streamlit demo, runs without API keys (MockLLM), multi-provider support
+**Key metrics:** 94 tests, 7-node pipeline, live Streamlit demo, Trace Inspector tab (3 sample runs), runs without API keys (MockLLM), multi-provider support
+
+### Trace Inspector (new)
+
+Open the Streamlit sidebar and pick **Trace Inspector** to audit a recent agent run end to end. Each run shows:
+
+- Per-span timeline: agent, tool called, input snippet, output snippet, latency, tokens, cost
+- Run-level rollups: outcome, total latency, total tokens, total cost, revision count
+- 3 pre-recorded runs covering the three outcomes a reviewer cares about:
+  1. `run-001-success`: clean 6-span pipeline, 4.8 s, $0.00412
+  2. `run-002-retry-then-success`: reviewer triggers one revision loop, 7.2 s, $0.00693
+  3. `run-003-tool-failure`: `web_search` times out, researcher surfaces failure cleanly, 3.1 s, $0.00184
+
+Source: `data/sample_traces.json`. Schema is asserted by `tests/test_trace_inspector.py` (5 tests). This is the MVP; next iteration wires the same UI to live SQLite + Langfuse so every demo run produces a fresh trace.
 
 **Certifications applied:** IBM RAG and Agentic AI (24h, LangGraph state machines), Duke LLMOps (48h, CI/CD pipeline patterns)
 

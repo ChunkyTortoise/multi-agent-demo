@@ -1,0 +1,232 @@
+{
+  "schema_version": "1.0",
+  "description": "Pre-recorded agent runs for the Trace Inspector. Each run contains a list of spans ordered by start time. Costs are estimated at Claude Haiku rates ($0.80/M input, $4/M output).",
+  "runs": [
+    {
+      "run_id": "run-001-success",
+      "topic": "How does retrieval-augmented generation reduce hallucinations?",
+      "outcome": "success",
+      "started_at": "2026-05-19T14:02:11Z",
+      "total_latency_ms": 4837,
+      "total_tokens": 2841,
+      "total_cost_usd": 0.00412,
+      "revision_count": 0,
+      "review_score": 0.86,
+      "spans": [
+        {
+          "span_id": "s1",
+          "agent_name": "planner",
+          "tool_called": null,
+          "input_snippet": "topic='How does retrieval-augmented generation reduce hallucinations?'",
+          "output_snippet": "plan=['Define RAG architecture', 'Cite hallucination measurement studies', 'Compare with vanilla LLM baselines']",
+          "latency_ms": 612,
+          "tokens": 318,
+          "cost_estimate_usd": 0.00041,
+          "status": "ok"
+        },
+        {
+          "span_id": "s2",
+          "agent_name": "researcher",
+          "tool_called": "web_search",
+          "input_snippet": "query='RAG hallucination reduction benchmark 2025'",
+          "output_snippet": "3 results returned: HELM 2025 leaderboard, Stanford CRFM eval, Anthropic faithfulness paper",
+          "latency_ms": 891,
+          "tokens": 412,
+          "cost_estimate_usd": 0.00058,
+          "status": "ok"
+        },
+        {
+          "span_id": "s3",
+          "agent_name": "researcher",
+          "tool_called": "retrieve_docs",
+          "input_snippet": "query='RAG architecture overview' k=5",
+          "output_snippet": "5 docs retrieved, avg cosine similarity 0.74",
+          "latency_ms": 218,
+          "tokens": 0,
+          "cost_estimate_usd": 0.0,
+          "status": "ok"
+        },
+        {
+          "span_id": "s4",
+          "agent_name": "drafter",
+          "tool_called": null,
+          "input_snippet": "research_context=[3 web results, 5 retrieved docs] target_length=400",
+          "output_snippet": "Draft 412 words. Covers retrieval grounding, citation patterns, faithfulness metrics from HELM 2025.",
+          "latency_ms": 1842,
+          "tokens": 1294,
+          "cost_estimate_usd": 0.00198,
+          "status": "ok"
+        },
+        {
+          "span_id": "s5",
+          "agent_name": "reviewer",
+          "tool_called": null,
+          "input_snippet": "draft=412_words rubric=['factual_grounding','coherence','citation_density']",
+          "output_snippet": "score=0.86 verdict='ship' notes='Citations match retrieved docs. Structure clean.'",
+          "latency_ms": 743,
+          "tokens": 612,
+          "cost_estimate_usd": 0.00089,
+          "status": "ok"
+        },
+        {
+          "span_id": "s6",
+          "agent_name": "publisher",
+          "tool_called": null,
+          "input_snippet": "approved_draft=412_words format='markdown'",
+          "output_snippet": "Published article, 412 words, 4 citations, 0 unresolved references.",
+          "latency_ms": 531,
+          "tokens": 205,
+          "cost_estimate_usd": 0.00026,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "run_id": "run-002-retry-then-success",
+      "topic": "Trade-offs between fine-tuning and prompt engineering",
+      "outcome": "success_after_revision",
+      "started_at": "2026-05-19T14:08:44Z",
+      "total_latency_ms": 7175,
+      "total_tokens": 4690,
+      "total_cost_usd": 0.00693,
+      "revision_count": 1,
+      "review_score": 0.81,
+      "spans": [
+        {
+          "span_id": "s1",
+          "agent_name": "planner",
+          "tool_called": null,
+          "input_snippet": "topic='Trade-offs between fine-tuning and prompt engineering'",
+          "output_snippet": "plan=['When fine-tuning wins', 'When prompts win', 'Cost-per-task comparison']",
+          "latency_ms": 587,
+          "tokens": 294,
+          "cost_estimate_usd": 0.00038,
+          "status": "ok"
+        },
+        {
+          "span_id": "s2",
+          "agent_name": "researcher",
+          "tool_called": "web_search",
+          "input_snippet": "query='fine-tuning vs prompting cost benchmark'",
+          "output_snippet": "4 results: OpenAI cost calculator, Anthropic prompt-engineering guide, 2 academic papers",
+          "latency_ms": 945,
+          "tokens": 487,
+          "cost_estimate_usd": 0.00071,
+          "status": "ok"
+        },
+        {
+          "span_id": "s3",
+          "agent_name": "drafter",
+          "tool_called": null,
+          "input_snippet": "research_context=[4 web results] target_length=400 revision=0",
+          "output_snippet": "Draft 378 words. Lists pros/cons but lacks concrete numbers.",
+          "latency_ms": 1672,
+          "tokens": 1148,
+          "cost_estimate_usd": 0.00176,
+          "status": "ok"
+        },
+        {
+          "span_id": "s4",
+          "agent_name": "reviewer",
+          "tool_called": null,
+          "input_snippet": "draft=378_words rubric=['factual_grounding','coherence','citation_density']",
+          "output_snippet": "score=0.62 verdict='revise' notes='Missing concrete cost numbers. Add a $/1K-tokens example.'",
+          "latency_ms": 712,
+          "tokens": 598,
+          "cost_estimate_usd": 0.00087,
+          "status": "ok"
+        },
+        {
+          "span_id": "s5",
+          "agent_name": "drafter",
+          "tool_called": null,
+          "input_snippet": "research_context=[4 web results] target_length=400 revision=1 reviewer_notes='Add $/1K example'",
+          "output_snippet": "Draft 421 words. Adds Haiku $0.80/M vs fine-tuned 7B at $0.20/M serving cost.",
+          "latency_ms": 1958,
+          "tokens": 1342,
+          "cost_estimate_usd": 0.00206,
+          "status": "ok"
+        },
+        {
+          "span_id": "s6",
+          "agent_name": "reviewer",
+          "tool_called": null,
+          "input_snippet": "draft=421_words revision=1",
+          "output_snippet": "score=0.81 verdict='ship' notes='Numbers added. Citations check out.'",
+          "latency_ms": 689,
+          "tokens": 587,
+          "cost_estimate_usd": 0.00085,
+          "status": "ok"
+        },
+        {
+          "span_id": "s7",
+          "agent_name": "publisher",
+          "tool_called": null,
+          "input_snippet": "approved_draft=421_words revision=1",
+          "output_snippet": "Published article, 421 words, 5 citations, revision_count=1.",
+          "latency_ms": 612,
+          "tokens": 234,
+          "cost_estimate_usd": 0.00030,
+          "status": "ok"
+        }
+      ]
+    },
+    {
+      "run_id": "run-003-tool-failure",
+      "topic": "Latest CVEs in popular MCP server implementations",
+      "outcome": "failure",
+      "started_at": "2026-05-19T14:14:02Z",
+      "total_latency_ms": 3127,
+      "total_tokens": 1218,
+      "total_cost_usd": 0.00184,
+      "revision_count": 0,
+      "review_score": 0.0,
+      "spans": [
+        {
+          "span_id": "s1",
+          "agent_name": "planner",
+          "tool_called": null,
+          "input_snippet": "topic='Latest CVEs in popular MCP server implementations'",
+          "output_snippet": "plan=['Enumerate MCP servers', 'Cross-ref CVE database', 'Score severity']",
+          "latency_ms": 601,
+          "tokens": 287,
+          "cost_estimate_usd": 0.00037,
+          "status": "ok"
+        },
+        {
+          "span_id": "s2",
+          "agent_name": "researcher",
+          "tool_called": "web_search",
+          "input_snippet": "query='MCP server CVE 2025 2026'",
+          "output_snippet": "ERROR: web_search timeout after 2000ms. No results returned.",
+          "latency_ms": 2021,
+          "tokens": 0,
+          "cost_estimate_usd": 0.0,
+          "status": "error"
+        },
+        {
+          "span_id": "s3",
+          "agent_name": "researcher",
+          "tool_called": "retrieve_docs",
+          "input_snippet": "query='MCP CVE' k=5",
+          "output_snippet": "0 docs above similarity threshold 0.6. Knowledge base does not cover this topic.",
+          "latency_ms": 198,
+          "tokens": 0,
+          "cost_estimate_usd": 0.0,
+          "status": "no_results"
+        },
+        {
+          "span_id": "s4",
+          "agent_name": "researcher",
+          "tool_called": null,
+          "input_snippet": "fallback=true context=[]",
+          "output_snippet": "Cannot proceed: no grounding context retrieved. Surfacing failure to caller.",
+          "latency_ms": 307,
+          "tokens": 931,
+          "cost_estimate_usd": 0.00147,
+          "status": "error"
+        }
+      ]
+    }
+  ]
+}
